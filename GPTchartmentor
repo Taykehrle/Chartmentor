@@ -1,0 +1,113 @@
+<!-- Chatbox para Conversa com o GPT -->
+<div class="chat-container">
+    <div class="chat-box" id="chatBox">
+        <!-- Mensagens de chat vão aparecer aqui -->
+    </div>
+    <div class="chat-input-container">
+        <input type="text" id="userInput" placeholder="Digite sua pergunta..." />
+        <button onclick="sendMessage()">Enviar</button>
+    </div>
+</div>
+
+<style>
+.chat-container {
+    width: 100%;
+    max-width: 600px;
+    margin: 20px auto;
+    background: #1a1d25;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.chat-box {
+    padding: 20px;
+    height: 300px;
+    overflow-y: scroll;
+    background: #0f1117;
+    color: #f1f2f6;
+    border-radius: 8px 8px 0 0;
+}
+
+.chat-input-container {
+    display: flex;
+    border-top: 1px solid #384056;
+    padding: 10px;
+    background: #1a1d25;
+    border-radius: 0 0 8px 8px;
+}
+
+.chat-input-container input {
+    flex-grow: 1;
+    padding: 8px;
+    background: #2f3542;
+    border: none;
+    border-radius: 4px;
+    color: #f1f2f6;
+}
+
+.chat-input-container button {
+    margin-left: 10px;
+    padding: 8px 16px;
+    background: #00b894;
+    border: none;
+    border-radius: 4px;
+    color: #f1f2f6;
+    cursor: pointer;
+}
+</style>
+<script>
+async function sendMessage() {
+    const userInput = document.getElementById("userInput").value;
+    if (!userInput) return;
+
+    // Adiciona a mensagem do usuário no chatbox
+    addMessageToChat("Usuário", userInput);
+
+    // Chama o GPT da OpenAI para obter uma resposta
+    const response = await fetchGPTResponse(userInput);
+
+    // Adiciona a resposta do GPT no chatbox
+    addMessageToChat("Mentor", response);
+
+    // Limpa o campo de entrada do usuário
+    document.getElementById("userInput").value = "";
+}
+
+function addMessageToChat(sender, message) {
+    const chatBox = document.getElementById("chatBox");
+    const messageElement = document.createElement("p");
+    messageElement.innerHTML = `<strong>${sender}:</strong> ${message}`;
+    chatBox.appendChild(messageElement);
+    chatBox.scrollTop = chatBox.scrollHeight;
+}
+
+async function fetchGPTResponse(message) {
+    const apiKey = "SUA_CHAVE_DE_API_OPENAI"; // Substitua pela sua chave de API
+    const endpoint = "https://api.openai.com/v1/chat/completions";
+
+    const headers = {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${apiKey}`
+    };
+
+    const body = JSON.stringify({
+        model: "gpt-4", // Use o modelo GPT de sua escolha
+        messages: [{ role: "user", content: message }],
+        max_tokens: 150,
+        temperature: 0.7
+    });
+
+    try {
+        const response = await fetch(endpoint, {
+            method: "POST",
+            headers: headers,
+            body: body
+        });
+        const data = await response.json();
+        return data.choices[0].message.content;
+    } catch (error) {
+        console.error("Erro ao chamar a API GPT:", error);
+        return "Desculpe, algo deu errado. Tente novamente mais tarde.";
+    }
+}
+</script>
